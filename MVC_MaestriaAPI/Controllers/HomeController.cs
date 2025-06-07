@@ -25,7 +25,7 @@ namespace MVC_MaestriaAPI.Controllers
             return View();
         }
 
-        // Nueva acción que consume la API y pasa los datos a la vista Dashboard
+        // Nueva acción que consume la API y pasa los datos a la vista Dashboard 
         public async Task<IActionResult> Dashboard()
         {
             string apiUrl = "https://hkgtyd5yfh.execute-api.us-east-1.amazonaws.com/dev/almacenamiento";
