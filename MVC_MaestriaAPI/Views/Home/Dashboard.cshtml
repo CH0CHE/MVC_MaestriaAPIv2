@@ -1,4 +1,5 @@
 ﻿@model List<MVC_MaestriaAPI.Controllers.HomeController.SensorDato>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 @{
     ViewData["Title"] = "Home Page";
@@ -17,16 +18,16 @@ else
         <table width="100%" style="border-collapse: collapse;">
             <tr>
                 <td width="38%" rowspan="2" align="center" style="height: 600px;vertical-align:middle" valign="middle">
-                    <div id="contenedor-tabla" style="height: 100%; border: 1px solid #ccc; padding: 15px; border-radius: 12px;vertical-align:middle"></div>
+                    <div id="contenedor-tabla" style="height: 100%; border: 1px solid #B5B2B2; padding: 15px; border-radius: 12px;vertical-align:middle"></div>
                 </td>
 
                 <td width="62%" style="height: 300px;">
-                    <div id="contenedor-humedad" style="height: 100%; border: 1px solid #ccc; padding: 15px; border-radius: 12px;"></div>
+                    <div id="contenedor-humedad" style="height: 100%; border: 1px solid #B5B2B2; padding: 15px; border-radius: 12px;"></div>
                 </td>
             </tr>
             <tr>
                 <td style="height: 300px;">
-                    <div id="contenedor-temperatura" style="height: 100%; border: 1px solid #ccc; padding: 15px; border-radius: 12px;"></div>
+                    <div id="contenedor-temperatura" style="height: 100%; border: 1px solid #B5B2B2; padding: 15px; border-radius: 12px;"></div>
                 </td>
             </tr>
         </table>
@@ -52,56 +53,87 @@ else
     <p style="color:green">Tiene @Model.Count registros retornados</p>
     <br />
 
-    <table style="border: 1px solid #ccc; border-radius: 8px; border-collapse: separate; border-spacing: 0; width: 500px; margin-top: 10px;" align="center" width="100%">
-        <thead>
-            <tr>
-                <th width="100%" colspan="4" style="border: 1px solid #ccc; padding: 8px; font-weight: bold; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;">PROMEDIOS</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;" rowspan="2">Temperatura</td>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Min</td>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Max</td>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Promedio</td>
-            </tr>
-            <tr>
-                @{
-                    var minTemp = ultimos20.Min(d => d.Temperatura);
-                    var maxTemp = ultimos20.Max(d => d.Temperatura);
-                    var promTemp = ultimos20.Average(d => d.Temperatura);
-                }
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(minTemp)">
-                    @minTemp.ToString("F2")
-                </td>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(maxTemp)">
-                    @maxTemp.ToString("F2")
-                </td>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(promTemp)">
-                    @promTemp.ToString("F2")
-                </td>
-            </tr>
-            <tr>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Humedad</td>
-                @{
-                    var minHum = ultimos20.Min(d => d.Humedad);
-                    var maxHum = ultimos20.Max(d => d.Humedad);
-                    var promHum = ultimos20.Average(d => d.Humedad);
-                }
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(minHum)">
-                    @minHum.ToString("F2")
-                </td>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(maxHum)">
-                    @maxHum.ToString("F2")
-                </td>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(promHum)">
-                    @promHum.ToString("F2")
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <table>
+        @{
+            var minTemp = ultimos20.Min(d => d.Temperatura);
+            var maxTemp = ultimos20.Max(d => d.Temperatura);
+            var promTemp = ultimos20.Average(d => d.Temperatura);
+            var promedioTemp = @promTemp.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        @{
+            var minHum = ultimos20.Min(d => d.Humedad);
+            var maxHum = ultimos20.Max(d => d.Humedad);
+            var promHum = ultimos20.Average(d => d.Humedad);
 
+        }
+        <tr>
+            <td width="33%">
+                <b>Promedio Temperatura</b>
+                <div>
+                    <script>
+                        var promedioTemp = @promTemp.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+                    </script>
+                    <canvas id="gaugeTemp" width="300" height="300"></canvas>
+                </div>
+            </td>
+            
+            <td width="33%">
+                <table style="border: 1px solid #ccc; border-radius: 8px; border-collapse: separate; border-spacing: 0; width: 500px; margin-top: 10px;" align="center" width="100%">
+                    <thead>
+                        <tr>
+                            <th width="100%" colspan="4" style="background-color:#B5B2B2;border: 1px solid #ccc; padding: 8px; font-weight: bold; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;">PROMEDIOS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;" rowspan="2">Temperatura</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Min</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Max</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Promedio</td>
+                        </tr>
+                        <tr>
+                            
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(minTemp)">
+                                @minTemp.ToString("F2")
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(maxTemp)">
+                                @maxTemp.ToString("F2")
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(promTemp)">
+                                @promTemp.ToString("F2")
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Humedad</td>
+                            
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(minHum)">
+                                @minHum.ToString("F2")
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(maxHum)">
+                                @maxHum.ToString("F2")
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(promHum)">
+                                @promHum.ToString("F2")
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </td>
+            
+            <td width="33%">
+                <b>Promedio Humedad</b>
+                <div>
+                    <script>
+                         var promedioHum = @promHum.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+                    </script>
+                    <canvas id="gaugeHum" width="300" height="300"></canvas>
+                </div>
+            </td>
+        </tr>
+    </table>
 }
+
 
 @functions {
     string ObtenerColor(double temp)
@@ -177,7 +209,7 @@ else
             const th = document.createElement('th');
             th.textContent = t;
             th.style.padding = '8px';
-            th.style.backgroundColor = '#eee';
+            th.style.backgroundColor = '#B5B2B2';
             th.style.textAlign = 'center';
             header.appendChild(th);
         });
@@ -205,6 +237,43 @@ else
 
 
         contenedor.appendChild(tabla);
+    }
+
+        function generarGauge(valor, canvasId) {
+        let estado = "";
+        let color = "";
+
+        if (valor >= 80) {
+            estado = "Alto";
+            color = "#28a745"; // Verde
+        } else if (valor >= 60) {
+            estado = "Normal";
+            color = "#ffc107"; // Amarillo
+        } else {
+            estado = "Bajo";
+            color = "#dc3545"; // Rojo
+        }
+
+        new Chart(document.getElementById(canvasId), {
+            type: 'doughnut',
+            data: {
+                labels: [estado, ""],
+                datasets: [{
+                    data: [valor, 100 - valor],
+                    backgroundColor: [color, "#e9ecef"],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                rotation: -90,
+                circumference: 180,
+                cutout: "70%",
+                plugins: {
+                    legend: { display: true },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
     }
 
 
@@ -281,6 +350,8 @@ else
         const divTabla = document.getElementById('contenedor-tabla');
         const divHumedad = document.getElementById('contenedor-humedad');
         const divTemperatura = document.getElementById('contenedor-temperatura');
+            generarGauge(promedioTemp, "gaugeTemp");
+            generarGauge(promedioHum, "gaugeHum");
 
         // Limpiar contenido
         divTabla.innerHTML = '';
