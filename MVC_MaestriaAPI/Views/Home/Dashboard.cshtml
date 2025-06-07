@@ -1,0 +1,269 @@
+﻿@model List<MVC_MaestriaAPI.Controllers.HomeController.SensorDato>
+
+@{
+    ViewData["Title"] = "Home Page";
+    var datosJson = System.Text.Json.JsonSerializer.Serialize(Model);
+}
+
+<h2>RESPUESTAS API</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div style="color: red; font-weight: bold;">@ViewBag.Error</div>
+}
+else
+{
+    <div id="contenedor-dinamico">
+        <table width="100%" style="border-collapse: collapse;">
+            <tr>
+                <td width="38%" rowspan="2" align="center" style="height: 600px;vertical-align:middle" valign="middle">
+                    <div id="contenedor-tabla" style="height: 100%; border: 1px solid #ccc; padding: 15px; border-radius: 12px;vertical-align:middle"></div>
+                </td>
+
+                <td width="62%" style="height: 300px;">
+                    <div id="contenedor-humedad" style="height: 100%; border: 1px solid #ccc; padding: 15px; border-radius: 12px;"></div>
+                </td>
+            </tr>
+            <tr>
+                <td style="height: 300px;">
+                    <div id="contenedor-temperatura" style="height: 100%; border: 1px solid #ccc; padding: 15px; border-radius: 12px;"></div>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+}
+
+
+@{
+    var ultimos20 = Model.TakeLast(20).ToList();
+}
+
+@if (Model == null)
+{
+    <p style="color:red">NULL</p>
+}
+else if (!Model.Any())
+{
+    <p style="color:red">VACÍO</p>
+}
+else
+{
+    <p style="color:green">Tiene @Model.Count registros retornados</p>
+    <br />
+
+    <table style="border: 1px solid #ccc; border-radius: 8px; border-collapse: separate; border-spacing: 0; width: 500px; margin-top: 10px;" align="center" width="100%">
+        <thead>
+            <tr>
+                <th width="100%" colspan="4" style="border: 1px solid #ccc; padding: 8px; font-weight: bold; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;">PROMEDIOS/GENERALIDADES (últimos 20)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;" rowspan="2">Temperatura</td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Min</td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Max</td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Promedio</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">@ultimos20.Min(d => d.Temperatura).ToString("F2")</td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">@ultimos20.Max(d => d.Temperatura).ToString("F2")</td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">@ultimos20.Average(d => d.Temperatura).ToString("F2")</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Humedad</td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">@ultimos20.Min(d => d.Humedad).ToString("F2")</td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">@ultimos20.Max(d => d.Humedad).ToString("F2")</td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">@ultimos20.Average(d => d.Humedad).ToString("F2")</td>
+            </tr>
+        </tbody>
+    </table>
+
+}
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const datosGlobales = JSON.parse('@Html.Raw(datosJson)');
+    console.log("Datos recibidos:", datosGlobales);
+
+    let graficoActual = null;
+
+    function cambiarVista() {
+        const contenedor = document.getElementById('contenedor');
+        const seleccion = document.getElementById('selector').value;
+        contenedor.innerHTML = '';
+
+        if (graficoActual) {
+            graficoActual.destroy();
+            graficoActual = null;
+        }
+
+        if (seleccion === 'tabla') {
+            generarTabla(contenedor);
+        } else {
+            generarGrafico(seleccion, contenedor);
+        }
+    }
+
+    /*function generarTabla(contenedor) {
+        const tabla = document.createElement('table');
+        tabla.border = '1';
+        tabla.style.width = '100%';
+        tabla.style.borderCollapse = 'collapse';
+
+        const header = tabla.insertRow();
+        ['Fecha/Hora', 'Temperatura', 'Humedad'].forEach(t => {
+            const th = document.createElement('th');
+            th.textContent = t;
+            th.style.padding = '8px';
+            th.style.backgroundColor = '#eee';
+            header.appendChild(th);
+        });
+
+        datosGlobales.forEach(d => {
+            const row = tabla.insertRow();
+            row.insertCell().textContent = d.Fecha;
+            row.insertCell().textContent = d.Temperatura;
+            row.insertCell().textContent = d.Humedad;
+        });
+
+        contenedor.appendChild(tabla);
+    }*/
+
+        function generarTabla(contenedor) {
+        const tabla = document.createElement('table');
+        tabla.border = '1';
+        tabla.style.width = '100%';
+        tabla.style.borderCollapse = 'collapse';
+
+        const header = tabla.insertRow();
+        ['Fecha','Hora', 'Temperatura', 'Humedad'].forEach(t => {
+            const th = document.createElement('th');
+            th.textContent = t;
+            th.style.padding = '8px';
+            th.style.backgroundColor = '#eee';
+            th.style.textAlign = 'center';
+            header.appendChild(th);
+        });
+
+        const ultimos10 = datosGlobales.slice(-27).reverse();
+        ultimos10.forEach(d => {
+            const row = tabla.insertRow();
+
+            const fechaCell = row.insertCell();
+            fechaCell.textContent = d.Fecha.slice(0, 10);
+            fechaCell.style.textAlign = 'center';
+
+            const horaCell = row.insertCell();
+            horaCell.textContent = d.Fecha.slice(11, 19);
+            horaCell.style.textAlign = 'right';
+
+            const tempCell = row.insertCell();
+            tempCell.textContent = d.Temperatura;
+            tempCell.style.textAlign = 'center';
+
+            const humCell = row.insertCell();
+            humCell.textContent = d.Humedad;
+            humCell.style.textAlign = 'center';
+        });
+
+
+        contenedor.appendChild(tabla);
+    }
+
+
+    function generarGrafico(tipo, contenedor) {
+        const canvas = document.createElement('canvas');
+        contenedor.appendChild(canvas);
+
+            /*const labels = datosGlobales.map(d => {
+                const fecha = new Date(d.Fecha);
+                return fecha.toISOString().slice(0, 19);
+            });
+        const values = datosGlobales.map(d => d[tipo.charAt(0).toUpperCase() + tipo.slice(1)]);*/
+
+            const ultimos10 = datosGlobales.slice(-20);
+
+    const labels = ultimos10.map(d => d.Fecha.slice(0, 19)); 
+    const values = ultimos10.map(d => d[tipo.charAt(0).toUpperCase() + tipo.slice(1)]);
+
+        graficoActual = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: tipo,
+                    data: values,
+                    borderColor: tipo === 'temperatura' ? 'blue' : 'green',
+                    backgroundColor: tipo === 'temperatura' ? 'rgba(0, 0, 255, 0.1)' : 'rgba(0, 128, 0, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `Gráfico de ${tipo}`
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    //cambiar entre los divs (v1)
+    //document.addEventListener("DOMContentLoaded", cambiarVista);
+
+
+        document.addEventListener("DOMContentLoaded", () => {
+        /* como se creo para pegarlo en el td de arriba (v2)
+        
+        const divTabla = document.getElementById('contenedor-tabla');
+        const divHumedad = document.getElementById('contenedor-humedad');
+        const divTemperatura = document.getElementById('contenedor-temperatura');
+
+        generarTabla(divTabla);
+        generarGrafico('humedad', divHumedad);
+        generarGrafico('temperatura', divTemperatura);*/
+
+        
+        //este es para actualizar todo en 10 sg (v3)
+        actualizarTodo(); // Primer render
+        // Refrescar cada 10 segundos
+        setInterval(actualizarTodo, 5000);
+    });
+
+
+    //funcion para actualizar cada 10 sg los graficos
+        function actualizarTodo() {
+        const divTabla = document.getElementById('contenedor-tabla');
+        const divHumedad = document.getElementById('contenedor-humedad');
+        const divTemperatura = document.getElementById('contenedor-temperatura');
+
+        // Limpiar contenido
+        divTabla.innerHTML = '';
+        divHumedad.innerHTML = '';
+        divTemperatura.innerHTML = '';
+
+        // Destruir gráficos si existen
+        if (graficoActual) {
+            graficoActual.destroy();
+            graficoActual = null;
+        }
+
+        // Generar nuevos elementos
+        generarTabla(divTabla);
+        generarGrafico('humedad', divHumedad);
+        generarGrafico('temperatura', divTemperatura);
+    }
+
+</script>
