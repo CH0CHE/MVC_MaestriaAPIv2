@@ -55,7 +55,7 @@ else
     <table style="border: 1px solid #ccc; border-radius: 8px; border-collapse: separate; border-spacing: 0; width: 500px; margin-top: 10px;" align="center" width="100%">
         <thead>
             <tr>
-                <th width="100%" colspan="4" style="border: 1px solid #ccc; padding: 8px; font-weight: bold; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;">PROMEDIOS/GENERALIDADES (últimos 20)</th>
+                <th width="100%" colspan="4" style="border: 1px solid #ccc; padding: 8px; font-weight: bold; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;">PROMEDIOS</th>
             </tr>
         </thead>
         <tbody>
@@ -66,19 +66,52 @@ else
                 <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Promedio</td>
             </tr>
             <tr>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">@ultimos20.Min(d => d.Temperatura).ToString("F2")</td>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">@ultimos20.Max(d => d.Temperatura).ToString("F2")</td>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">@ultimos20.Average(d => d.Temperatura).ToString("F2")</td>
+                @{
+                    var minTemp = ultimos20.Min(d => d.Temperatura);
+                    var maxTemp = ultimos20.Max(d => d.Temperatura);
+                    var promTemp = ultimos20.Average(d => d.Temperatura);
+                }
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(minTemp)">
+                    @minTemp.ToString("F2")
+                </td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(maxTemp)">
+                    @maxTemp.ToString("F2")
+                </td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(promTemp)">
+                    @promTemp.ToString("F2")
+                </td>
             </tr>
             <tr>
                 <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">Humedad</td>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">@ultimos20.Min(d => d.Humedad).ToString("F2")</td>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">@ultimos20.Max(d => d.Humedad).ToString("F2")</td>
-                <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">@ultimos20.Average(d => d.Humedad).ToString("F2")</td>
+                @{
+                    var minHum = ultimos20.Min(d => d.Humedad);
+                    var maxHum = ultimos20.Max(d => d.Humedad);
+                    var promHum = ultimos20.Average(d => d.Humedad);
+                }
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(minHum)">
+                    @minHum.ToString("F2")
+                </td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(maxHum)">
+                    @maxHum.ToString("F2")
+                </td>
+                <td style="border: 1px solid #ccc; padding: 8px; text-align: center; @ObtenerColor(promHum)">
+                    @promHum.ToString("F2")
+                </td>
             </tr>
         </tbody>
     </table>
 
+}
+
+@functions {
+    string ObtenerColor(double temp)
+    {
+        if (temp < 5) return "background-color: #CAEDFB; color: black;"; // azul
+        else if (temp < 20) return "background-color: #DAF2D0; color: black;"; // verde
+        else if (temp < 30) return "background-color: #FFFFB7; color: black;"; // amarillo
+        else if (temp < 35) return "background-color: #FBE2D5; color: black;"; // anaranjado
+        else return "background-color: #FFA3A3; color: black;"; // rojo
+    }
 }
 
 
